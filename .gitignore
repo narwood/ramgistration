@@ -2,3 +2,4 @@ env
 .idea
 School*
 .csv
+__pycache__

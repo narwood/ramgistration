@@ -4,39 +4,75 @@ import math
 import csv
 import os
 
+from .professor import Professor
 # This code has been tested using Python 3.6 interpreter and Linux (Ubuntu).
 # It should run under Windows, if anything you may need to make some adjustments for the file paths of the CSV files.
 
 
-class RateMyProfScraper:
-    def __init__(self, schoolid):
-        self.UniversityId = schoolid
+class ProfessorNotFound(Exception):
+    def __init__(self, search_argument, search_parameter: str = "Name"):
+
+        # What the client is looking for. Ex: "Professor Pattis"
+        self.search_argument = self.search_argument
+
+        # The search criteria. Ex: Last Name
+        self.search_parameter = search_parameter
+
+    def __str__(self):
+
+        return (
+            f"Proessor not found"
+            + f" The search argument {self.search_argument} did not"
+            + f" match with any professor's {self.search_parameter}"
+        )
+
+
+class RateMyProfApi:
+    def __init__(self, school_id: str = "1074", testing: bool = False):
+        self.UniversityId = school_id
         if not os.path.exists("SchoolID_" + str(self.UniversityId)):
             os.mkdir("SchoolID_" + str(self.UniversityId))
-        self.professorlist = self.createprofessorlist()
+
+        # dict of Professor
+        self.professors= self.scrape_professors(testing)
         self.indexnumber = False
 
-    def createprofessorlist(
+    def scrape_professors(
         self,
+        testing: bool = False
     ):  # creates List object that include basic information on all Professors from the IDed University
-        tempprofessorlist = []
-        num_of_prof = self.GetNumOfProfessors(self.UniversityId)
+        professors = dict()
+        num_of_prof = self.get_num_of_professors(self.UniversityId)
         num_of_pages = math.ceil(num_of_prof / 20)
-        i = 1
-        while i <= num_of_pages:  # the loop insert all professor into list
+
+        for i in range(1, num_of_pages + 1):  # the loop insert all professor into list
             page = requests.get(
                 "http://www.ratemyprofessors.com/filter/professor/?&page="
                 + str(i)
                 + "&filter=teacherlastname_sort_s+asc&query=*%3A*&queryoption=TEACHER&queryBy=schoolId&sid="
                 + str(self.UniversityId)
             )
-            temp_jsonpage = json.loads(page.content)
-            temp_list = temp_jsonpage["professors"]
-            tempprofessorlist.extend(temp_list)
-            i += 1
-        return tempprofessorlist
+            json_response = json.loads(page.content)
+            temp_list = json_response["professors"]
 
-    def GetNumOfProfessors(
+
+            for json_professor in json_response["professors"]:
+                print(json_professor)
+                professor = Professor(
+                    json_professor["tid"],
+                    json_professor["tFname"],
+                    json_professor["tLname"],
+                    json_professor["tNumRatings"],
+                    json_professor["overall_rating"])
+
+                professors[professor.ratemyprof_id] = professor
+
+            # for test cases, limit to 2 iterations
+            if testing and (i > 1): break
+
+        return professors
+
+    def get_num_of_professors(
         self, id
     ):  # function returns the number of professors in the university of the given ID.
         page = requests.get(
@@ -49,41 +85,31 @@ class RateMyProfScraper:
         )  # get the number of professors at William Paterson University
         return num_of_prof
 
-    def SearchProfessor(self, ProfessorName):
-        self.indexnumber = self.GetProfessorIndex(ProfessorName)
-        self.PrintProfessorInfo()
+    def search_professor(self, ProfessorName):
+        self.indexnumber = self.get_professor_index(ProfessorName)
+        self.print_professor_info()
         return self.indexnumber
 
-    def GetProfessorIndex(
-        self, ProfessorName
-    ):  # function searches for professor in list
-        for i in range(0, len(self.professorlist)):
-            if ProfessorName == (
-                self.professorlist[i]["tFname"] + " " + self.professorlist[i]["tLname"]
-            ):
-                return i
-        return False  # Return False is not found
 
-    def PrintProfessorInfo(self):  # print search professor's name and RMP score
-        if self.indexnumber == False:
-            print("error")
-        else:
-            print(self.professorlist[self.indexnumber])
 
-    def PrintProfessorDetail(self, key):  # print search professor's name and RMP score
-        if self.indexnumber == False:
-            print("error")
-            return "error"
-        else:
-            print(self.professorlist[self.indexnumber][key])
-            return self.professorlist[self.indexnumber][key]
+    def get_professor_by_last_name(
+        self, last_name
+    ) -> Professor:
+        '''
+        Return the first professor with the matching last name.
+        Case insenstive.
+        '''
+        last_name = last_name.lower()
+        for name in professors:
+            if last_name == professors[name].last_name.lower():
+                return professors[name]
 
-    def PrintProfessorList(self):
-        for professor in self.professorlist:
-            print(professor)
+        # Raise error if no matching professor found
+        raise ProfessorNotFound(last_name, "Last Name")
 
-    def GetProfessorList(self):
-        return self.professorlist
+
+
+
 
     def WriteProfessorListToCSV(self):
         csv_columns = [
@@ -107,9 +133,9 @@ class RateMyProfScraper:
             for data in self.professorlist:
                 writer.writerow(data)
 
-    def createReviewslist(self, tid):
+    def create_reviews_list(self, tid):
         tempreviewslist = []
-        num_of_reviews = self.GetNumOfReviews(tid)
+        num_of_reviews = self.get_num_of_reviews(tid)
         # RMP only loads 20 reviews per page,
         # so num_of_pages tells us how many pages we need to get all the reviews
         num_of_pages = math.ceil(num_of_reviews / 20)
@@ -127,7 +153,7 @@ class RateMyProfScraper:
             i += 1
         return tempreviewslist
 
-    def GetNumOfReviews(self, id):
+    def get_num_of_reviews(self, id):
         page = requests.get(
             "https://www.ratemyprofessors.com/paginate/professors/ratings?tid="
             + str(id)
@@ -185,13 +211,15 @@ class RateMyProfScraper:
 if __name__ == '__main__':
 
     # Getting general professor info!
-    WilliamPatersonUniversity = RateMyProfScraper(1205)
-    WilliamPatersonUniversity.SearchProfessor("Cyril Ku")
-    WilliamPatersonUniversity.PrintProfessorDetail("overall_rating")
+    uci = RateMyProfApi(1074)
 
-    MassInstTech = RateMyProfScraper(580)
-    MassInstTech.SearchProfessor("Robert Berwick")
-    MassInstTech.PrintProfessorDetail("overall_rating")
+
+    # uci.search_professor("Pattis")
+    # uci.print_professor_detail("overall_rating")
+    '''
+    MassInstTech = RateMyProfApi(580)
+    MassInstTech.search_professor("Robert Berwick")
+    MassInstTech.print_professor_detail("overall_rating")
 
     # Let's try the above class out to get data from a number of schools!
     # William Patterson, Case Western, University of Chicago, CMU, Princeton, Yale, MIT, UTexas at Austin, Duke, Stanford, Rice, Tufts
@@ -199,9 +227,11 @@ if __name__ == '__main__':
     schools = [1205, 186, 1085, 181, 780, 1222, 580, 1255, 1350, 953, 799, 1040]
     for school in schools:
         print("=== Processing School " + str(school) + " ===")
-        rmps = RateMyProfScraper(school)
+        rmps = RateMyProfApi(school)
         rmps.WriteProfessorListToCSV()
-        professors = rmps.GetProfessorList()
+        professors = rmps.get_professor_list()
         for professor in professors:
-            reviewslist = rmps.createReviewslist(professor.get("tid"))
+            reviewslist = rmps.create_reviews_list(professor.get("tid"))
             rmps.WriteReviewsListToCSV(reviewslist, professor.get("tid"))
+
+    '''
