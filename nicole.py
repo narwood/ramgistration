@@ -1,12 +1,18 @@
 from bs4 import BeautifulSoup
-from urllib.request import urlopen
+import requests
 
 url = "https://catalog.unc.edu/undergraduate/programs-study/"
-source = urlopen(url)
-soup = BeautifulSoup(source)
+data = requests.get(url)
+html = data.text
+soup = BeautifulSoup(html, 'html.parser')
 
 def main():
-    int = 0
+    majors = []
+    minors = []
+    links = soup.find_all("li")
+    for link in links:
+        print(link.get('a href'))
+        print("\n")
 
 if __name__ == "__main__":
     main()
