@@ -23,6 +23,19 @@ def minors():
     del minors[0]
     return minors
 
+def listy():
+    list = majors()
+    majorsString = ""
+    for major in list:
+        majorsString += major + ", "
+    print(majorsString)
+
+    list2 = minors()
+    minorsString = ""
+    for minor in list2:
+        minorsString += minor + ", "
+    print(minorsString)
+
 def clicky(program):
     clickOn = soup.find_all("a", string=program)[0]
     url2 = clickOn.get("href")[1::]
@@ -33,14 +46,12 @@ def clicky(program):
     tables = clickySoup.find_all("table", class_="sc_courselist")
     return tables[0]
 
+
 def tableReader(table):
-    for child in table.find_all("tbody")[0].descendants:
-        pass
-    table.find_all("a", class_="bubblelinkcode")
-    table.find_all("span", class_="courselistcomment")
-    selected = table.find_all(class_=["a", "b"])
-    #print(selected[0].prettify())
-    
+    tbody = table.find_all("tbody")[0]
+    selected = tbody.find_all(True, {'class':[re.compile("courselistcomment"), 'bubblelink code']})
+    for item in selected:
+        print(item.get_text())
     
 
 def clickyDiagnostic():
@@ -61,17 +72,7 @@ def clickyDiagnostic():
 
 
 def main():  
-    list = majors()
-    majorsString = ""
-    for major in list:
-        majorsString += major + ", "
-    print(majorsString)
-
-    list2 = minors()
-    minorsString = ""
-    for minor in list2:
-        minorsString += minor + ", "
-    print(minorsString)
+    tableReader(clicky("Mathematics Major, B.S."))
 
     
 
