@@ -31,7 +31,17 @@ def clicky(program):
     htmlClicky = dataClicky.text
     clickySoup = BeautifulSoup(htmlClicky, 'html.parser')
     tables = clickySoup.find_all("table", class_="sc_courselist")
-    return tables
+    return tables[0]
+
+def tableReader(table):
+    for child in table.find_all("tbody")[0].descendants:
+        pass
+    table.find_all("a", class_="bubblelinkcode")
+    table.find_all("span", class_="courselistcomment")
+    selected = table.find_all(class_=["a", "b"])
+    #print(selected[0].prettify())
+    
+    
 
 def clickyDiagnostic():
     sadCount = 0
@@ -49,8 +59,20 @@ def clickyDiagnostic():
     print("happy: " + str(happyCount))
     print(problemPrograms)
 
+
 def main():  
-    
+    list = majors()
+    majorsString = ""
+    for major in list:
+        majorsString += major + ", "
+    print(majorsString)
+
+    list2 = minors()
+    minorsString = ""
+    for minor in list2:
+        minorsString += minor + ", "
+    print(minorsString)
+
     
 
 if __name__ == "__main__":
