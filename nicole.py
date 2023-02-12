@@ -58,17 +58,16 @@ def printTable(program):
         print(item.get_text()) 
 
 def getCLCnames():
-    for program in majorList[27:29]: 
-        print(program)
+    for program in majorList[59:61]: 
         table = clicky(program) 
         tbody = table.find_all("tbody")[0]
         selected = tbody.find_all(class_=re.compile("courselistcomment"))
+        for item in selected:
+            print(item.get_text())
         return selected
-        # for clc in selected:
-        #     print(clc.get_text())
+        
 
 def rowParser():
-    
     condList = ["numbered", "higher", "level", "above"]
     setList = ["chosen", "following", "from"]
     conds = []
@@ -76,20 +75,19 @@ def rowParser():
     leftOut = []
     appCheck = False
     for clc in getCLCnames():
-        while not(appCheck):
-            for st in condList:
-                if st in clc:
-                    conds.append(clc)
-                    appCheck = True
-            appCheck = False
-            for st in setList:
-                if st in clc:
-                    lists.append(clc)
-                    appCheck = True
-            if appCheck == False:
-                leftOut.append(clc)
-            else:
-                appCheck = False
+        clcstr = clc.get_text()
+        for st in condList:
+            if not(appCheck) and st in clcstr:
+                conds.append(clcstr)
+                appCheck = True
+        for st in setList:
+            if not(appCheck) and st in clcstr:
+                lists.append(clcstr)
+                appCheck = True
+        if not(appCheck):
+            leftOut.append(clcstr)
+        appCheck = False
+
     print("Conditions:")
     print(conds)
     print("\nLists:")
@@ -97,6 +95,27 @@ def rowParser():
     print("\nLeft out:")
     print(leftOut)
 
+
+def rowParseByIndex():
+    CLCnames = getCLCnames()
+    condList = ["numbered", "higher", "level", "above"]
+    setList = ["chosen", "following", "from"]
+    parseList = []
+    appCheck = False
+    for clc in getCLCnames():
+        clcstr = clc.get_text()
+        for st in condList:
+            if not(appCheck) and st in clcstr:
+                parseList.append("cond")
+                appCheck = True
+        for st in setList:
+            if not(appCheck) and st in clcstr:
+                parseList.append("set")
+                appCheck = True
+        if not(appCheck):
+            parseList.append("none")
+        appCheck = False
+    return parseList
         
 
 
@@ -117,8 +136,9 @@ def clickyDiagnostic():
     print(problemPrograms)
 
 
-def main():  
+def main(): 
     rowParser()
+    print(rowParseByIndex())
     
 
 if __name__ == "__main__":
