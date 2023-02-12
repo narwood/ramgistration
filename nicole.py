@@ -26,6 +26,12 @@ def minors():
 minorList = minors()
 majorList = majors()
 
+def dept(program):
+    table = clicky(program)
+    tbody = table.find_all("tbody")[0]
+    firstCourse = tbody.find_all(class_="bubblelink code")[0].get_text()[0:4]
+    return firstCourse
+
 def clicky(program):
     clickOn = soup.find_all("a", string=program)[0]
     url2 = clickOn.get("href")[1::]
@@ -60,7 +66,8 @@ def rowParseByIndex(program):
         clcstr = clc.get_text()
         for st in condList:
             if not(appCheck) and st in clcstr:
-                parseList.append("&c" + str(wordsToInts(clcstr)))
+                num = re.findall(r'\b\d{3}\b', clcstr)[0]
+                parseList.append("&c" + str(wordsToInts(clcstr)) + ">" + dept(program) + num)
                 appCheck = True
         for st in setList:
             if not(appCheck) and st in clcstr:
@@ -71,14 +78,15 @@ def rowParseByIndex(program):
         appCheck = False
     return parseList
 
-def parseRow(row):
+def parseRow(row, program):
     condList = ["numbered", "higher", "level", "above"]
     setList = ["chosen", "following", "from"]
     appCheck = False
     clcstr = row.get_text()
     for st in condList:
         if not(appCheck) and st in clcstr:
-            return "&c" + str(wordsToInts(clcstr))
+            num = re.findall(r'\b\d{3}\b', clcstr)[0]
+            return "&c" + str(wordsToInts(clcstr)) + ">" + dept(program) + num
             appCheck = True
     for st in setList:
         if not(appCheck) and st in clcstr:
@@ -127,12 +135,13 @@ def wordsToInts(str):
     else:
         return ""
 
-def tableToDict(table):
+def tableToDict(table, program):
     outList = []
     selected = tableReader(table)
+
     for item in selected:
         if item['class'][0]=="courselistcomment":
-            outList.append(parseRow(item))
+            outList.append(parseRow(item, program))
         else:
             ugly = item.get_text()
             slashdex = ugly.find("\xa0")
@@ -170,7 +179,8 @@ def tableToDict(table):
                         dict[item] = set
                     
                 elif item[1] == "c":
-                    dict[item] = item[2]
+                    end = len(item)
+                    dict[item] = item[2:end]
                     #this as-is just gives number of classes needed - needs to also give dept and condition
             else:
                 pass
@@ -224,7 +234,7 @@ def printCLCnames(program):
 
 def rowParser(program):
     condList = ["numbered", "higher", "level", "above"]
-    setList = ["chosen", "following", "from"]
+    setList = ["chosen", "following", "from", "list"]
     conds = []
     lists = []
     leftOut = []
@@ -243,7 +253,7 @@ def rowParser(program):
             leftOut.append(clcstr)
         appCheck = False
 
-    print("Conditions:")
+    print("\nConditions:")
     print(conds)
     print("\nLists:")
     print(lists)
@@ -254,12 +264,11 @@ def rowParser(program):
 
 
 def main(): 
-    program = "Computer Science Major, B.S."
-    # printCLCnames(program)
-    # rowParser(program)
-    # print(rowParseByIndex(program))
-    #print(tableToList(clicky(program)))
-    print(tableToDict(clicky(program)))
+    program = "Art History Major, B.A."
+    print(tableToDict(clicky(program), program))
+        
+
+    
     
 
 if __name__ == "__main__":
