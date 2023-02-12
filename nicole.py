@@ -41,35 +41,109 @@ def tableReader(table):
     tbody = table.find_all("tbody")[0]
     selected = tbody.find_all(True, {'class':[re.compile("courselistcomment"), 'bubblelink code']})
     return selected
+    
 
-def getCLCnames():
-    for program in majorList[27:29]: 
-        table = clicky(program) 
-        tbody = table.find_all("tbody")[0]
-        selected = tbody.find_all(class_=re.compile("courselistcomment"))
-        return selected
+def getCLCnames(program):
+    table = clicky(program) 
+    tbody = table.find_all("tbody")[0]
+    selected = tbody.find_all(class_=re.compile("courselistcomment"))
+    return selected
 
 
-def rowParseByIndex():
-    CLCnames = getCLCnames()
+def rowParseByIndex(program):
+    CLCnames = getCLCnames(program)
     condList = ["numbered", "higher", "level", "above"]
     setList = ["chosen", "following", "from"]
     parseList = []
     appCheck = False
-    for clc in getCLCnames():
+    for clc in getCLCnames(program):
         clcstr = clc.get_text()
         for st in condList:
             if not(appCheck) and st in clcstr:
-                parseList.append("cond")
+                parseList.append(str(wordsToInts(clcstr)) + "cond")
                 appCheck = True
         for st in setList:
             if not(appCheck) and st in clcstr:
-                parseList.append("set")
+                parseList.append(str(wordsToInts(clcstr)) + "set")
                 appCheck = True
         if not(appCheck):
             parseList.append("none")
         appCheck = False
     return parseList
+
+def parseRow(row):
+    condList = ["numbered", "higher", "level", "above"]
+    setList = ["chosen", "following", "from"]
+    appCheck = False
+    clcstr = row.get_text()
+    for st in condList:
+        if not(appCheck) and st in clcstr:
+            return str(wordsToInts(clcstr)) + "cond"
+            appCheck = True
+    for st in setList:
+        if not(appCheck) and st in clcstr:
+            return str(wordsToInts(clcstr)) + "set"
+            appCheck = True
+    return "none"
+    
+
+def wordsToInts(str):
+    if "ne course" in str:
+        return 1
+    elif "wo courses" in str:
+        return 2    
+    elif "hree courses" in str:
+        return 3
+    elif "our courses" in str:
+        return 4
+    elif "ive courses" in str:
+        return 5
+    elif "ix courses" in str:
+        return 6
+    elif "even courses" in str:
+        return 7
+    elif "ight courses" in str:
+        return 8
+    elif "ine courses" in str:
+        return 9
+    elif "ne " in str:
+        return 1
+    elif "wo " in str:
+        return 2
+    elif "hree " in str:
+        return 3
+    elif "our " in str:
+        return 4
+    elif "ive " in str:
+        return 5
+    elif "ix " in str:
+        return 6
+    elif "even " in str:
+        return 7
+    elif "ight " in str:
+        return 8
+    elif "ine " in str:
+        return 9
+    else:
+        return ""
+
+def tableToList(table):
+    outList = []
+    selected = tableReader(table)
+    for item in selected:
+        if item['class'][0]=="courselistcomment":
+            outList.append(parseRow(item))
+        else:
+            ugly = item.get_text()
+            slashdex = ugly.find("\xa0")
+            if slashdex == -1:
+                outList.append(ugly)
+            else:
+                end = len(ugly)
+                pretty = ugly[0:slashdex] + ugly[slashdex+1:end]
+                outList.append(pretty)
+    return outList
+
         
 # --------------------- printing/testing functions -------------------------------------
 
@@ -107,19 +181,19 @@ def printTable(program):
         print(item.get_text()) 
 
 
-def printCLCnames():
-    for item in getCLCnames():
+def printCLCnames(program):
+    for item in getCLCnames(program):
             print(item.get_text())
 
 
-def rowParser():
+def rowParser(program):
     condList = ["numbered", "higher", "level", "above"]
     setList = ["chosen", "following", "from"]
     conds = []
     lists = []
     leftOut = []
     appCheck = False
-    for clc in getCLCnames():
+    for clc in getCLCnames(program):
         clcstr = clc.get_text()
         for st in condList:
             if not(appCheck) and st in clcstr:
@@ -144,8 +218,12 @@ def rowParser():
 
 
 def main(): 
-    rowParser()
-    print(rowParseByIndex())
+    program = "Computer Science Major, B.S."
+    # printCLCnames(program)
+    # rowParser(program)
+    # print(rowParseByIndex(program))
+    #print(tableToList(clicky(program)))
+    print(tableToList(clicky(program)))
     
 
 if __name__ == "__main__":
