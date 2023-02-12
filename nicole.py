@@ -24,12 +24,17 @@ def minors():
     return minors
 
 minorList = minors()
+minorList.remove('Art History Minor')
+minorList.remove("Asian Studies Minor")
 majorList = majors()
 
 def dept(program):
     table = clicky(program)
     tbody = table.find_all("tbody")[0]
-    firstCourse = tbody.find_all(class_="bubblelink code")[0].get_text()[0:4]
+    courses = tbody.find_all(class_="bubblelink code")
+    firstCourse = ""
+    if len(courses) != 0:
+        firstCourse = courses[0].get_text()[0:4]
     return firstCourse
 
 def clicky(program):
@@ -85,7 +90,10 @@ def parseRow(row, program):
     clcstr = row.get_text()
     for st in condList:
         if not(appCheck) and st in clcstr:
-            num = re.findall(r'\b\d{3}\b', clcstr)[0]
+            nums = re.findall(r'\b\d{3}\b', clcstr)
+            num = ""
+            if len(nums) != 0:
+                num = nums[0]
             return "&c" + str(wordsToInts(clcstr)) + ">" + dept(program) + num
             appCheck = True
     for st in setList:
@@ -190,6 +198,13 @@ def tableToDict(table, program):
     
     return dict
 
+def bigDictEnergy():
+    bigDict = {}
+    for major in majorList:
+        bigDict[major] = tableToDict(clicky(major), major)
+    for minor in minorList:
+        bigDict[minor] = tableToDict(clicky(minor), minor)
+    return bigDict
         
 # --------------------- printing/testing functions -------------------------------------
 
@@ -264,8 +279,7 @@ def rowParser(program):
 
 
 def main(): 
-    program = "Art History Major, B.A."
-    print(tableToDict(clicky(program), program))
+    print(bigDictEnergy())
         
 
     
