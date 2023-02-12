@@ -60,14 +60,14 @@ def rowParseByIndex(program):
         clcstr = clc.get_text()
         for st in condList:
             if not(appCheck) and st in clcstr:
-                parseList.append(str(wordsToInts(clcstr)) + "cond")
+                parseList.append("&c" + str(wordsToInts(clcstr)))
                 appCheck = True
         for st in setList:
             if not(appCheck) and st in clcstr:
-                parseList.append(str(wordsToInts(clcstr)) + "set")
+                parseList.append("&s" + str(wordsToInts(clcstr)))
                 appCheck = True
         if not(appCheck):
-            parseList.append("none")
+            parseList.append("&n")
         appCheck = False
     return parseList
 
@@ -78,13 +78,13 @@ def parseRow(row):
     clcstr = row.get_text()
     for st in condList:
         if not(appCheck) and st in clcstr:
-            return str(wordsToInts(clcstr)) + "cond"
+            return "&c" + str(wordsToInts(clcstr))
             appCheck = True
     for st in setList:
         if not(appCheck) and st in clcstr:
-            return str(wordsToInts(clcstr)) + "set"
+            return "&s" + str(wordsToInts(clcstr))
             appCheck = True
-    return "none"
+    return "&n"
     
 
 def wordsToInts(str):
@@ -127,7 +127,7 @@ def wordsToInts(str):
     else:
         return ""
 
-def tableToList(table):
+def tableToDict(table):
     outList = []
     selected = tableReader(table)
     for item in selected:
@@ -142,7 +142,43 @@ def tableToList(table):
                 end = len(ugly)
                 pretty = ugly[0:slashdex] + ugly[slashdex+1:end]
                 outList.append(pretty)
-    return outList
+    
+    dict = {}
+    i = 0
+    j = 0
+    while i < len(outList):
+        item = outList[i]
+        if item[0] == "&":
+            if item[1] == "n":
+                pass
+            elif len(item) > 2:
+                if item[1] == "s":
+                    j = i + 1
+                    set = []
+                    stop = False
+                    while j < len(outList) and not(stop):
+                        if outList[j][0] == "&":
+                            stop = True
+                        else:
+                            set.append(outList[j])
+                            i = j
+                        j += 1
+                    stop = False
+                    if len(set) == 0:
+                        pass
+                    else:
+                        dict[item] = set
+                    
+                elif item[1] == "c":
+                    dict[item] = item[2]
+                    #this as-is just gives number of classes needed - needs to also give dept and condition
+            else:
+                pass
+        else:
+            dict[item] = 1
+        i += 1
+    
+    return dict
 
         
 # --------------------- printing/testing functions -------------------------------------
@@ -223,7 +259,7 @@ def main():
     # rowParser(program)
     # print(rowParseByIndex(program))
     #print(tableToList(clicky(program)))
-    print(tableToList(clicky(program)))
+    print(tableToDict(clicky(program)))
     
 
 if __name__ == "__main__":
