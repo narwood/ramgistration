@@ -23,16 +23,17 @@ def minors():
     del minors[0]
     return minors
 
+minorList = minors()
+majorList = majors()
+
 def listy():
-    list = majors()
     majorsString = ""
-    for major in list:
+    for major in majorList:
         majorsString += major + ", "
     print(majorsString)
 
-    list2 = minors()
     minorsString = ""
-    for minor in list2:
+    for minor in minorList:
         minorsString += minor + ", "
     print(minorsString)
 
@@ -50,9 +51,54 @@ def clicky(program):
 def tableReader(table):
     tbody = table.find_all("tbody")[0]
     selected = tbody.find_all(True, {'class':[re.compile("courselistcomment"), 'bubblelink code']})
-    for item in selected:
-        print(item.get_text())
+    return selected
+
+def printTable(program):
+     for item in tableReader(clicky(program)):
+        print(item.get_text()) 
+
+def getCLCnames():
+    for program in majorList[27:29]: 
+        print(program)
+        table = clicky(program) 
+        tbody = table.find_all("tbody")[0]
+        selected = tbody.find_all(class_=re.compile("courselistcomment"))
+        return selected
+        # for clc in selected:
+        #     print(clc.get_text())
+
+def rowParser():
     
+    condList = ["numbered", "higher", "level", "above"]
+    setList = ["chosen", "following", "from"]
+    conds = []
+    lists = []
+    leftOut = []
+    appCheck = False
+    for clc in getCLCnames():
+        while not(appCheck):
+            for st in condList:
+                if st in clc:
+                    conds.append(clc)
+                    appCheck = True
+            appCheck = False
+            for st in setList:
+                if st in clc:
+                    lists.append(clc)
+                    appCheck = True
+            if appCheck == False:
+                leftOut.append(clc)
+            else:
+                appCheck = False
+    print("Conditions:")
+    print(conds)
+    print("\nLists:")
+    print(lists)
+    print("\nLeft out:")
+    print(leftOut)
+
+        
+
 
 def clickyDiagnostic():
     sadCount = 0
@@ -72,8 +118,7 @@ def clickyDiagnostic():
 
 
 def main():  
-    tableReader(clicky("Mathematics Major, B.S."))
-
+    rowParser()
     
 
 if __name__ == "__main__":
