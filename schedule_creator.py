@@ -4,17 +4,15 @@
 # create empty schedule
 
 # Add dependencies.
+from nicole import majors
 import csv
 import os
-from nicole import *
 # Create the path and import the data
 #file_to_load = os.path.join("Resources", "Spring_2023.csv")
 #file_to_save = os.path.join("Analysis", "Schedule.txt")
 
 # Nicole and Suzanna's dictionaries, geneds.
 #major_reqs = {"math":{"COMP 110": 1, "MATH 383": 1, "MATH 381": 1, "&MATH 521 MATH 533": 1, "+MATH 520": 4}, "engl":{"blah": 1, "+bluj": 2}}
-mreqs = bigDictEnergy()
-first = mreqs[0]
 prereqs = {"MATH 383": ["MATH 233"], "MATH 233": ["MATH 231", "MATH 232"]}
 geneds = ["CR", "FL", "FL", "FL", "QR", "LF", "PX", "PX/PL", "HS/SS", "HS/SS", "HS", "VP", "LA", "PH", "BN", "CI", "EE", "GL", "NA", "QI/QR", "US", "WB"]
 
@@ -115,7 +113,7 @@ with open(file_to_load) as spring_2023:
                         schedule.append(course_name)
 
 def main():
-    print(first)
+    print(majors())
 
 if __name__ == "__main__":
     main()
