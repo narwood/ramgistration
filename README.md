@@ -1,5 +1,12 @@
-# Process
-## 1. Created a CSV File with Spring 2023 Classes
+The goal of this project was to create a tool that allowed the user to input their major and the classes they have taken, and output a recommended schedule based on graduation requirements, course prerequisite information, and the course offer for the current semester. 
+
+## 1. Obtaining required classes for each major
+To obtain the required classes for each major, we used the Beautiful Soup python library to webscrape data from the UNC undergraduate programs of study page. Our program loops through each link on the main page, visits the page for each major and minor, identifies the table containing information about the required classes, and attempts to parse each row in the table into usable information for the scheduling program. 
+We distinguished title rows from rows containing class names by testing to determine if each row contained a link, as all class names are hyperlinked to the UNC course catalog. We then separated required courses into three categories: classes that must be taken, lists of classes from which a certain number must be taken, and conditions that must be fulfilled (i.e. 3 classes above 400 level).
+We then used keyword filtering on the title rows to determine which category class codes in the table fell into: classes in rows below title rows containing the words "following", "below", and "chosen" were placed in the lists of classes category, while classes in rows below title rows containing the words "numbered", "higher", "level", and "above" were placed in the conditions category. These lists were refined until very few title rows were uncategorized or incorrectly categorized. 
+All majors and minors UNC offers are the keys in the final required classes dictionary, with the values being lists of course codes whose first character is one of '&' (lists of classes), 'c' (conditions), or 'x' (required).
+
+## 2. Created a CSV File with Spring 2023 Classes
 Downloaded a pdf of all Spring 2023 classes. The formatting of this data made it unusable. Thus, it was opened and transformed into a usable csv file in Excel with the following VBA script
 
 ```
@@ -189,16 +196,13 @@ Sub CleanWorksheet()
 End Sub
 ```
 
-## 2. Website Design
+## 3. Website Design
 Wireframed and developped a protype website in Adobe XD for a final submission.
 
 https://xd.adobe.com/view/9c9732e9-0f59-4be7-8945-85cb2d86df11-c9c4/
 
-## 3. Created a Dictionary of Courses Required for Each Major
-Nicole speak on this
-
 ## 4. Created a Dictionary of Prerequisites for Each Course
-Suzanna speak on this
+Using the BeautifulSoup library, scraped data from the UNC course catalog about recquired prerequisites for each course, then transferred that data to a dictionary.
 
 ## 5. Created a Final Schedule
 The data from the two dictionaries was combined with the data from the csv in order to produce a possible schedule.
